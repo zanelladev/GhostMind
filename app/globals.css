@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+/* GhostMind — design system from DESIGN.md (ElevenLabs "parchment terminal").
+   Light theme, monochrome controls, warm paper surfaces. Decorative accents
+   (violet / orange) are reserved for the game canvas, never for UI state. */
+@theme {
+  /* Colors */
+  --color-parchment-white: #fdfcfc;
+  --color-warm-sand: #f5f3f1;
+  --color-ash-border: #e5e5e5;
+  --color-midnight-ink: #000000;
+  --color-driftwood: #777169;
+  --color-fog: #a59f97;
+  --color-silver-mist: #b1b0b0;
+  --color-void-violet: #0447ff;
+  --color-ember-orange: #ff4704;
+
+  /* Typography — families. DM Sans 300 substitutes Waldenburg for display. */
+  --font-display: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-inter: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-geist-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Typography — scale */
+  --text-caption: 10px;
+  --text-body: 16px;
+  --text-subheading: 18px;
+  --text-heading-sm: 20px;
+  --text-heading: 32px;
+  --text-heading-lg: 36px;
+  --text-display: 48px;
+
+  /* Spacing */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-64: 64px;
+
+  /* Border radius */
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 14px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-subtle: rgba(0, 0, 0, 0.075) 0px 0px 0px 0.5px inset;
+  --shadow-control: rgba(0, 0, 0, 0.06) 0px 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 1px 2px 0px,
+    rgba(0, 0, 0, 0.04) 0px 2px 4px 0px;
+  --shadow-elevated: rgba(0, 0, 0, 0.4) 0px 0px 1px 0px, rgba(0, 0, 0, 0.04) 0px 1px 1px 0px,
+    rgba(0, 0, 0, 0.04) 0px 2px 4px 0px;
+
+  /* Surfaces */
+  --surface-canvas: #fdfcfc;
+  --surface-card: #f5f3f1;
+  --surface-border: #e5e5e5;
+  --surface-elevated: #ffffff;
+}
+
+html,
+body {
+  background: var(--color-parchment-white);
+  color: var(--color-midnight-ink);
+  font-family: var(--font-inter);
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Display headlines whisper authority: light weight, tight negative tracking. */
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+
+.font-mono {
+  font-family: var(--font-geist-mono);
+}
