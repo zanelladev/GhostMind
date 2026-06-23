@@ -21,18 +21,23 @@ function Row({
   metrics: Metrics;
 }) {
   return (
-    <div
-      className="grid grid-cols-[1fr_auto] gap-y-[2px] rounded-[14px] px-[12px] py-[10px]"
-      style={{ background: "var(--surface-elevated)", boxShadow: "var(--shadow-subtle)" }}
-    >
-      <span className="text-[13px] font-medium">{name}</span>
-      <span className="font-mono text-[11px]" style={{ color: "var(--color-driftwood)" }}>
-        {algo}
-      </span>
-      <div className="col-span-2 mt-[4px] flex justify-between font-mono text-[11px]" style={{ color: "var(--color-driftwood)" }}>
-        <span>nós {metrics.nodesExpanded}</span>
-        <span>custo {metrics.pathLength}</span>
-        <span>{metrics.timeMs.toFixed(2)} ms</span>
+    <div className="rounded-[16px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-[14px] transition-all duration-150 hover:border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.04)]">
+      <div className="flex items-center justify-between gap-[10px] mb-[10px]">
+        <span className="text-[13px] font-medium text-[var(--color-text)]">{name}</span>
+        <span
+          className="rounded-full px-[8px] py-[4px] text-[11px] font-medium"
+          style={{
+            background: "rgba(124, 58, 237, 0.15)",
+            color: "var(--color-accent)",
+          }}
+        >
+          {algo}
+        </span>
+      </div>
+      <div className="flex justify-between gap-[8px] font-mono text-[11px]">
+        <span className="text-[var(--color-muted)]">nós: {metrics.nodesExpanded}</span>
+        <span className="text-[var(--color-muted)]">custo: {metrics.pathLength}</span>
+        <span className="text-[var(--color-muted)]">{metrics.timeMs.toFixed(1)}ms</span>
       </div>
     </div>
   );
@@ -40,20 +45,22 @@ function Row({
 
 export default function MetricsPanel({ state }: { state: GameState }) {
   return (
-    <div
-      className="flex flex-col gap-[8px] rounded-[20px] p-[16px]"
-      style={{ background: "var(--surface-card)" }}
-    >
-      <h2 className="text-[14px] font-medium">Métricas de busca</h2>
-      <Row name="Pac-Man" algo="Greedy" metrics={state.pacman.metrics} />
-      {state.ghosts.map((g) => (
-        <Row
-          key={g.id}
-          name={`${PERSONALITY_LABEL[g.personality]}${g.frightened ? " (fuga)" : ""}`}
-          algo={g.frightened ? "Greedy" : "A*"}
-          metrics={g.metrics}
-        />
-      ))}
+    <div className="surface-card flex flex-col gap-[14px] p-[24px]">
+      <div>
+        <h2 className="text-[15px] font-medium text-[var(--color-text)]">Métricas de busca</h2>
+        <p className="mt-[4px] text-[12px] text-[var(--color-muted)]">Agentes de pathfinding</p>
+      </div>
+      <div className="flex flex-col gap-[10px]">
+        <Row name="Pac-Man" algo="Greedy" metrics={state.pacman.metrics} />
+        {state.ghosts.map((g) => (
+          <Row
+            key={g.id}
+            name={`${PERSONALITY_LABEL[g.personality]}${g.frightened ? " ⚡" : ""}`}
+            algo={g.frightened ? "Greedy" : "A*"}
+            metrics={g.metrics}
+          />
+        ))}
+      </div>
     </div>
   );
 }

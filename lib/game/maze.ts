@@ -81,12 +81,23 @@ export function neighbors(walls: boolean[][], v: Vec): Vec[] {
   return out;
 }
 
+export function allOpenCells(walls: boolean[][]): Vec[] {
+  const openCells: Vec[] = [];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (!walls[r][c]) openCells.push({ r, c });
+    }
+  }
+  return openCells;
+}
+
 /** Initial set of normal pills: every open cell except spawns and power pills. */
-export function buildPills(walls: boolean[][]): Set<string> {
+export function buildPills(walls: boolean[][], extraReserved: Iterable<string> = []): Set<string> {
   const reserved = new Set<string>([
     key(PACMAN_SPAWN),
     ...GHOST_SPAWNS.map(key),
     ...POWER_PILL_CELLS.map(key),
+    ...extraReserved,
   ]);
   const pills = new Set<string>();
   for (let r = 0; r < ROWS; r++) {

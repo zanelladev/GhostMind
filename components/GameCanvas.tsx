@@ -10,13 +10,13 @@ import type { GameState, GhostState } from "@/lib/game/types";
 const CELL = 26;
 
 const COLORS = {
-  bg: "#f5f3f1", // warm sand maze floor
-  wall: "#000000", // midnight ink walls
-  pill: "#a59f97", // fog
-  powerPill: "#ff4704", // ember orange
-  pacman: "#ff4704", // ember orange
-  ghost: "#0447ff", // void violet (hunting)
-  ghostFrightened: "#b1b0b0", // silver mist (fleeing)
+  bg: "#121212",
+  wall: "#000000",
+  pill: "#6b7280",
+  powerPill: "#38bdf8",
+  pacman: "#38bdf8",
+  ghost: "#a855f7",
+  ghostFrightened: "#6b7280",
   ghostLabel: "#ffffff",
 } as const;
 

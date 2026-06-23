@@ -22,6 +22,16 @@ export interface SearchResult {
   metrics: Metrics;
 }
 
+export type Difficulty = "easy" | "normal" | "hard";
+
+export interface GameSettings {
+  ghostSpawnRandom: boolean;
+  minSpawnDistance: number;
+  maxSpawnAttempts: number;
+  ghostCount: number;
+  difficulty: Difficulty;
+}
+
 export type GhostPersonality = "chaser" | "ambusher" | "cautious";
 
 export type Direction = "up" | "down" | "left" | "right";
@@ -68,6 +78,8 @@ export interface GameState {
   lives: number;
   /** Most recent threat level predicted by the Naive Bayes classifier. */
   threat: ThreatLevel;
+  /** Current gameplay settings. */
+  settings: GameSettings;
   /** Monotonic tick counter. */
   tick: number;
 }

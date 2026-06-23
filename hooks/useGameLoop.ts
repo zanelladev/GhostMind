@@ -22,12 +22,14 @@ export interface GameLoopApi {
   running: boolean;
   speed: number; // ticks per second
   mode: GameMode;
+  settings: GameState["settings"];
   classifierSamples: number;
   proba: Record<string, number>;
   toggleRunning: () => void;
   reset: () => void;
   setMode: (mode: GameMode) => void;
   setSpeed: (speed: number) => void;
+  setSettings: (settings: GameState["settings"]) => void;
 }
 
 export function useGameLoop(): GameLoopApi {
@@ -37,6 +39,7 @@ export function useGameLoop(): GameLoopApi {
   const [state, setState] = useState<GameState>(() => createGame("ai"));
   const [running, setRunning] = useState(false);
   const [speed, setSpeed] = useState(6);
+  const [settings, setSettingsState] = useState<GameState["settings"]>(state.settings);
   const desiredDir = useRef<Direction | null>(null);
 
   // Capture arrow / WASD input for player mode.
@@ -77,11 +80,18 @@ export function useGameLoop(): GameLoopApi {
   const reset = useCallback(() => {
     setRunning(false);
     desiredDir.current = null;
-    setState((prev) => createGame(prev.mode));
-  }, []);
+    setState((prev) => createGame(prev.mode, settings));
+  }, [settings]);
 
   const setMode = useCallback((mode: GameMode) => {
     setState((prev) => (prev.mode === mode ? prev : { ...prev, mode }));
+  }, []);
+
+  const setSettings = useCallback((nextSettings: GameState["settings"]) => {
+    setSettingsState(nextSettings);
+    setRunning(false);
+    desiredDir.current = null;
+    setState((prev) => createGame(prev.mode, nextSettings));
   }, []);
 
   // Posterior probabilities for the threat badge, from the current state.
@@ -92,11 +102,13 @@ export function useGameLoop(): GameLoopApi {
     running,
     speed,
     mode: state.mode,
+    settings,
     classifierSamples: classifier.sampleCount,
     proba,
     toggleRunning,
     reset,
     setMode,
     setSpeed,
+    setSettings,
   };
 }

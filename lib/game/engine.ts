@@ -1,8 +1,9 @@
-import type { Direction, GameMode, GameState, GhostState, ThreatLevel, Vec } from "./types";
+import type { Direction, GameMode, GameSettings, GameState, GhostState, ThreatLevel, Vec } from "./types";
 import {
   GHOST_SPAWNS,
   PACMAN_SPAWN,
   POWER_PILL_CELLS,
+  allOpenCells,
   buildPills,
   buildWalls,
   equals,
@@ -11,6 +12,7 @@ import {
 import { decideGhostMove } from "./agents/ghost";
 import { decidePacmanAI, decidePacmanPlayer } from "./agents/pacman";
 import { extractFeatures, labelFeatures } from "./nb/features";
+import { manhattan } from "./search/heuristics";
 
 // Authoritative game rules. `step` is a pure transition: it never mutates the
 // input state, returning a fresh state each tick. Threat classification is
@@ -18,7 +20,20 @@ import { extractFeatures, labelFeatures } from "./nb/features";
 // decoupled and optional.
 
 export const POWER_DURATION = 30; // ticks
-export const INITIAL_LIVES = 3;
+
+const DEFAULT_SETTINGS: GameSettings = {
+  ghostSpawnRandom: false,
+  minSpawnDistance: 8,
+  maxSpawnAttempts: 12,
+  ghostCount: 3,
+  difficulty: "normal",
+};
+
+const DIFFICULTY_LIVES: Record<GameSettings["difficulty"], number> = {
+  easy: 5,
+  normal: 3,
+  hard: 2,
+};
 
 const PERSONALITIES = ["chaser", "ambusher", "cautious"] as const;
 
@@ -33,25 +48,77 @@ export interface StepInputs {
   classify?: (features: number[]) => ThreatLevel;
 }
 
-export function createGame(mode: GameMode = "ai"): GameState {
-  const walls = buildWalls();
-  const ghosts: GhostState[] = GHOST_SPAWNS.map((spawn, i) => ({
-    id: `ghost-${i}`,
-    personality: PERSONALITIES[i % PERSONALITIES.length],
-    pos: { ...spawn },
-    home: { ...spawn },
+function chooseRandomGhostSpawns(
+  walls: boolean[][],
+  pacmanPos: Vec,
+  settings: GameSettings,
+): Vec[] {
+  const reserved = new Set<string>([
+    key(PACMAN_SPAWN),
+    ...POWER_PILL_CELLS.map(key),
+  ]);
+
+  const candidates = allOpenCells(walls).filter((cell) => {
+    if (reserved.has(key(cell))) return false;
+    if (manhattan(cell, pacmanPos) < settings.minSpawnDistance) return false;
+    return true;
+  });
+
+  const selected: Vec[] = [];
+  const tried = new Set<string>();
+  const maxAttempts = Math.min(settings.maxSpawnAttempts, candidates.length);
+
+  while (selected.length < settings.ghostCount && tried.size < maxAttempts) {
+    const candidate = candidates[Math.floor(Math.random() * candidates.length)];
+    if (!candidate) break;
+    const keyCandidate = key(candidate);
+    tried.add(keyCandidate);
+    if (selected.some((cell) => equals(cell, candidate))) continue;
+    selected.push(candidate);
+  }
+
+  if (selected.length < settings.ghostCount) {
+    const defaults = GHOST_SPAWNS.slice(0, settings.ghostCount - selected.length);
+    for (const spawn of defaults) selected.push({ ...spawn });
+  }
+
+  return selected;
+}
+
+function buildGhosts(
+  settings: GameSettings,
+  walls: boolean[][],
+  pacmanPos: Vec,
+): GhostState[] {
+  const count = Math.min(Math.max(settings.ghostCount, 1), GHOST_SPAWNS.length);
+  const spawnCells = settings.ghostSpawnRandom
+    ? chooseRandomGhostSpawns(walls, pacmanPos, { ...settings, ghostCount: count })
+    : GHOST_SPAWNS.slice(0, count).map((spawn) => ({ ...spawn }));
+
+  return spawnCells.map((pos, index) => ({
+    id: `ghost-${index}`,
+    personality: PERSONALITIES[index % PERSONALITIES.length],
+    pos: { ...pos },
+    home: { ...pos },
     metrics: { nodesExpanded: 0, pathLength: 0, timeMs: 0 },
     frightened: false,
   }));
+}
+
+export function createGame(mode: GameMode = "ai", settings: GameSettings = DEFAULT_SETTINGS): GameState {
+  const walls = buildWalls();
+  const ghostSettings = { ...DEFAULT_SETTINGS, ...settings };
+  const pacmanStart = { ...PACMAN_SPAWN };
+  const ghosts = buildGhosts(ghostSettings, walls, pacmanStart);
 
   return {
     rows: walls.length,
     cols: walls[0].length,
     walls,
-    pills: buildPills(walls),
+    pills: buildPills(walls, ghosts.map((ghost) => key(ghost.pos))),
     powerPills: new Set(POWER_PILL_CELLS.map(key)),
     pacman: {
-      pos: { ...PACMAN_SPAWN },
+      pos: pacmanStart,
       dir: "left",
       metrics: { nodesExpanded: 0, pathLength: 0, timeMs: 0 },
     },
@@ -60,8 +127,9 @@ export function createGame(mode: GameMode = "ai"): GameState {
     mode,
     status: "playing",
     score: 0,
-    lives: INITIAL_LIVES,
+    lives: DIFFICULTY_LIVES[ghostSettings.difficulty],
     threat: "safe",
+    settings: ghostSettings,
     tick: 0,
   };
 }
@@ -87,10 +155,8 @@ function respawnAgents(s: GameState): void {
   s.pacman.pos = { ...PACMAN_SPAWN };
   s.pacman.dir = "left";
   s.powerTicks = 0;
-  s.ghosts.forEach((g, i) => {
-    g.pos = { ...GHOST_SPAWNS[i] };
-    g.frightened = false;
-  });
+  const ghosts = buildGhosts(s.settings, s.walls, s.pacman.pos);
+  s.ghosts = ghosts;
 }
 
 /** Resolve any Pac-Man/ghost overlaps. Returns true if Pac-Man died. */

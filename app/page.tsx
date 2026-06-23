@@ -3,6 +3,7 @@
 import GameCanvas from "@/components/GameCanvas";
 import ControlPanel from "@/components/ControlPanel";
 import MetricsPanel from "@/components/MetricsPanel";
+import SettingsPanel from "@/components/SettingsPanel";
 import ThreatBadge from "@/components/ThreatBadge";
 import { useGameLoop } from "@/hooks/useGameLoop";
 
@@ -17,50 +18,43 @@ export default function Home() {
   const { state } = game;
 
   return (
-    <main
-      className="mx-auto min-h-screen px-[24px] py-[40px]"
-      style={{ maxWidth: "1200px" }}
-    >
-      {/* Header */}
-      <header className="mb-[32px] flex flex-col gap-[8px]">
-        <span
-          className="font-mono text-[14px] font-bold"
-          style={{ letterSpacing: "0.05em" }}
-        >
-          || GHOSTMIND
-        </span>
-        <h1 className="font-display text-[48px]" style={{ lineHeight: 1.08 }}>
-          Perseguição inteligente em labirinto
-        </h1>
-        <p className="max-w-[640px] text-[16px]" style={{ color: "var(--color-driftwood)" }}>
-          Fantasmas autônomos caçam com busca <strong>A*</strong> (heurística de
-          Manhattan) e personalidades distintas; o Pac-Man foge com{" "}
-          <strong>Greedy Best-First</strong>. Uma pílula de poder inverte os papéis,
-          e um classificador <strong>Naive Bayes</strong> avalia o nível de ameaça
-          do estado.
-        </p>
+    <main className="page-shell mx-auto max-w-[1200px]">
+      <header className="mb-[32px] rounded-[28px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-[28px] shadow-soft backdrop-blur-[12px]">
+        <div className="flex flex-col gap-[14px]">
+          <span className="font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-accent)]">
+            ghostmind
+          </span>
+          <h1 className="text-[44px] font-display leading-[1.02] sm:text-[56px]">
+            Perseguição inteligente em labirinto
+          </h1>
+          <p className="max-w-[720px] text-[15px] leading-[1.8] text-[var(--color-muted)]">
+            Fantasmas autônomos caçam com <strong>A*</strong> e personalidades
+            distintas, enquanto o Pac-Man foge com <strong>Greedy Best-First</strong>.
+            Um power-up inverte os papéis e um classificador <strong>Naive Bayes</strong>
+            avalia o nível de ameaça em tempo real.
+          </p>
+        </div>
       </header>
 
-      <div className="flex flex-col gap-[24px] lg:flex-row lg:items-start">
-        {/* Game */}
-        <div className="flex flex-col gap-[16px]">
+      <div className="grid gap-[24px] xl:grid-cols-[1.4fr_0.8fr]">
+        <div className="grid gap-[18px]">
           <GameCanvas state={state} />
-          <div
-            className="flex items-center justify-between rounded-[20px] px-[16px] py-[12px]"
-            style={{ background: "var(--surface-card)" }}
-          >
-            <span className="font-mono text-[13px]">
-              Pontos {state.score} · Vidas {state.lives}
-            </span>
-            <span className="text-[13px]" style={{ color: "var(--color-driftwood)" }}>
+
+          <div className="surface-card flex flex-col gap-[10px] p-[18px] sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-[4px]">
+              <p className="text-[13px] font-medium text-[var(--color-muted)]">Resumo</p>
+              <p className="text-[15px] font-medium text-[var(--color-text)]">
+                Pontos {state.score} · Vidas {state.lives}
+              </p>
+            </div>
+            <p className="rounded-full border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-[14px] py-[8px] text-[13px] font-medium text-[var(--color-muted)]">
               {STATUS_LABEL[state.status]}
               {state.powerTicks > 0 ? ` · poder ${state.powerTicks}` : ""}
-            </span>
+            </p>
           </div>
         </div>
 
-        {/* Controls + threat */}
-        <aside className="flex w-full flex-col gap-[20px] lg:w-[300px]">
+        <aside className="grid gap-[20px]">
           <ControlPanel
             running={game.running}
             mode={game.mode}
@@ -71,15 +65,11 @@ export default function Home() {
             onSetMode={game.setMode}
             onSetSpeed={game.setSpeed}
           />
-          <ThreatBadge
-            threat={state.threat}
-            proba={game.proba}
-            samples={game.classifierSamples}
-          />
-        </aside>
 
-        {/* Metrics — own column so it stays in view without scrolling */}
-        <aside className="w-full lg:w-[300px]">
+          <SettingsPanel settings={game.settings} onChange={game.setSettings} />
+
+          <ThreatBadge threat={state.threat} proba={game.proba} samples={game.classifierSamples} />
+
           <MetricsPanel state={state} />
         </aside>
       </div>
